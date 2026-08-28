@@ -13,6 +13,7 @@ REQUIRED = [
     "src/nba_project/crud.py",
     "src/nba_project/indexes.py",
     "src/nba_project/aggregations.py",
+    "src/nba_project/app.py",
     "scripts/backup.ps1",
     "scripts/restore.ps1",
 ]

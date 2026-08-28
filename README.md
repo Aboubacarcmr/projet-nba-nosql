@@ -26,6 +26,8 @@ Le projet construit une base MongoDB Atlas a partir de donnees NBA reelles. L'ob
 | Aggregations et visualisations | `src/nba_project/aggregations.py` genere tables Markdown et graphiques |
 | Sauvegarde/restauration | `scripts/backup.ps1` et `scripts/restore.ps1` |
 | Depot propre | `.env` et donnees lourdes ignorees par `.gitignore` |
+| Interface d'interrogation | Interface Streamlit dans `src/nba_project/app.py` |
+| Code structure | Modules Python reutilisables dans `src/nba_project/` |
 
 ---
 
@@ -254,6 +256,28 @@ outputs/home_win_rate.png
 
 ---
 
+## Interface d'interrogation
+
+L'interface permet d'utiliser le projet sans taper de requetes MongoDB dans un terminal.
+
+Lancement :
+
+```powershell
+streamlit run src/nba_project/app.py
+```
+
+Fonctionnalites :
+
+| Onglet | Utilite |
+|---|---|
+| Accueil | Verifier la connexion Atlas, afficher le volume des collections et les derniers matchs |
+| Recherche | Rechercher des matchs par saison, par equipe ou par joueur |
+| Analyses | Lancer des aggregations et afficher les resultats sous forme de tableaux et graphiques |
+
+Cette interface interroge directement les collections MongoDB Atlas via la meme configuration `.env` que les scripts Python.
+
+---
+
 ## Sauvegarde et restauration
 
 Sauvegarde :
@@ -272,59 +296,34 @@ La restauration utilise `--drop` pour remettre la base dans l'etat exact de la s
 
 ---
 
-## Bonus vise
+## Organisation du code
 
-Bonus principal vise : **projet structure**.
+Le projet est organise en modules Python reutilisables. L'objectif est d'eviter un notebook unique difficile a relancer et de separer clairement les responsabilites du projet.
 
-Le code est organise en modules Python :
+Structure principale :
 
 ```text
 src/nba_project/
-  config.py
-  db.py
-  transform.py
-  load_data.py
-  crud.py
-  indexes.py
-  aggregations.py
-  admin.py
+  config.py          # lecture de .env, chemins du projet, fichiers attendus
+  db.py              # connexion MongoDB Atlas
+  transform.py       # lecture CSV et transformation en documents MongoDB
+  load_data.py       # chargement des collections dans Atlas
+  crud.py            # operations Create, Read, Update, Delete
+  indexes.py         # creation des index et mesures explain avant/apres
+  aggregations.py    # pipelines d'aggregation et generation des graphiques
+  app.py             # interface Streamlit
+  admin.py           # verification rapide des volumes en base
 ```
 
-Le notebook n'est pas necessaire pour faire tourner le projet : les scripts sont reutilisables et documentes.
+Cette organisation permet de lancer chaque partie separement :
 
----
+```powershell
+python -m src.nba_project.load_data
+python -m src.nba_project.admin
+python -m src.nba_project.crud
+python -m src.nba_project.indexes
+python -m src.nba_project.aggregations
+streamlit run src/nba_project/app.py
+```
 
-## Repartition du travail a deux
-
-| Personne | Responsabilite | Elements defendus |
-|---|---|---|
-| Personne 1 | Donnees, transformation, Atlas, modelisation, sauvegarde/restauration | Pourquoi MongoDB, schema, embarquer/referencer, couts du modele |
-| Personne 2 | CRUD, index, `explain`, aggregations, visualisations | Mesures de performance, pipelines d'aggregation, resultats metier |
-
-Chaque personne doit presenter sa partie dans la video.
-
----
-
-## Video de soutenance
-
-La video est deposee separement sur Teams avant 16h45.
-
-Plan conseille :
-
-1. Sujet, dataset et objectif metier.
-2. Architecture MongoDB et fiche de modelisation.
-3. Demonstration Atlas et verification des collections.
-4. Demonstration CRUD.
-5. Demonstration index avec `explain` avant/apres.
-6. Demonstration aggregations et visualisations.
-7. Sauvegarde/restauration.
-8. Question de defense tiree au sort.
-9. Limites du projet.
-
----
-
-## Limites connues
-
-Le dataset est fourni en CSV, donc il est proche d'un modele relationnel au depart. La valeur du projet vient de la transformation en documents centres sur les matchs.
-
-Certaines donnees sont dupliquees pour faciliter les lectures. Cette duplication est acceptable ici, mais elle impose de documenter les couts et les cas de mise a jour.
+Chaque fichier a un role precis. La transformation des CSV est isolee dans `transform.py`, la connexion Atlas est centralisee dans `db.py`, et les traitements metier sont separes entre CRUD, index, aggregations et interface. Cela rend le projet plus simple a relire, a corriger et a presenter pendant la soutenance.
