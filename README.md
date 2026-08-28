@@ -48,7 +48,7 @@ Copy-Item .env.example .env
 Puis renseigner :
 
 ```text
-ATLAS_URI=mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+ATLAS_URI=mongodb+srv://akramchami98:test1998@cluster0.aggekpf.mongodb.net/?appName=Cluster0
 DB_NAME=nba
 ```
 
